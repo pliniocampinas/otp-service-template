@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.002.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "otp-service-template", "otp-service-template.csproj", "{D73F3129-2F68-4C20-BF5A-5A72E4968866}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D73F3129-2F68-4C20-BF5A-5A72E4968866}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D73F3129-2F68-4C20-BF5A-5A72E4968866}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D73F3129-2F68-4C20-BF5A-5A72E4968866}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D73F3129-2F68-4C20-BF5A-5A72E4968866}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D030938D-85F5-4DAF-9922-439CC243A96A}
+	EndGlobalSection
+EndGlobal
