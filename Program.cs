@@ -1,9 +1,13 @@
+using Microsoft.AspNetCore.Mvc;
+using otp_service_template.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddScoped<IOneTimePasswordService, OneTimePasswordService>();
 
 var app = builder.Build();
 
@@ -16,26 +20,6 @@ if (app.Environment.IsDevelopment())
 
 // app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
-
 app.MapGet("/health", () =>
 {
     return "healthy";
@@ -43,9 +27,61 @@ app.MapGet("/health", () =>
 .WithName("Health")
 .WithOpenApi();
 
+app.MapPost("/register", async ([FromBody] RegisterUserRequest request) =>
+{
+    await Task.Delay(1000);
+    return Results.Created();
+})
+.WithName("register")
+.WithOpenApi();
+
+app.MapPost("/validation-start", async ([FromServices] IOneTimePasswordService otpService, [FromBody] StartValidationRequest request) =>
+{
+    if(string.IsNullOrEmpty(request.Email))
+        return Results.BadRequest("Email required");
+
+    await otpService.RequestValidation(request.Email);
+
+    return Results.Ok();
+})
+.WithName("StartOtpRequest")
+.WithOpenApi();
+
+app.MapPost("/validation-confirmation", async ([FromServices] IOneTimePasswordService otpService, [FromBody] ConfirmValidationRequest request) =>
+{
+    if(string.IsNullOrEmpty(request.Email))
+        return Results.BadRequest("Email required");
+
+    if(string.IsNullOrEmpty(request.Password))
+        return Results.BadRequest("Password required");
+
+    var result = await otpService.ConfirmValidation(request.Email, request.Password);
+
+    if (result.Status != ConfirmationStatus.Authorized)
+        return Results.Unauthorized();
+
+    return Results.Ok(new {
+        result.Token
+    });
+})
+.WithName("ConfirmOtpRequest")
+.WithOpenApi();
+
 app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
+class RegisterUserRequest()
 {
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    public string FullName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+}
+
+class StartValidationRequest()
+{
+    public string Email { get; set; } = string.Empty;
+}
+
+class ConfirmValidationRequest()
+{
+    public string Email { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
 }
