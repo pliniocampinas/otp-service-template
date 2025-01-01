@@ -1,16 +1,8 @@
 namespace otp_service_template.Services;
 
-public enum UserStatus
-{
-  None,
-  Created,
-  Active,
-  Deactivated
-}
-
-public class User
+public class ValidationEmail
 {
   public string FullName { get; set; } = string.Empty;
   public string Email { get; set; } = string.Empty;
-  public UserStatus Status { get; set; }
+  public string Password { get; set; } = string.Empty;
 }

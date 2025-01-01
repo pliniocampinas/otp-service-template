@@ -16,4 +16,10 @@ public class UserService: IUserService
       Status = UserStatus.Active
     };
   }
+
+  public async Task<User> Save(User user)
+  {
+    await Task.Delay(100);
+    return user;
+  }
 }
