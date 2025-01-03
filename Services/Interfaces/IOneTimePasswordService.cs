@@ -4,4 +4,5 @@ public interface IOneTimePasswordService
 {
   Task RequestValidation(string email);
   Task<OneTimePasswordConfirmResult> ConfirmValidation(string email, string password);
+  Task<bool> VerifyToken(string token);
 }

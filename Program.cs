@@ -69,6 +69,18 @@ app.MapPost("/validation-confirmation", async ([FromServices] IOneTimePasswordSe
 .WithName("ConfirmOtpRequest")
 .WithOpenApi();
 
+app.MapPost("/user", async ([FromServices] IOneTimePasswordService otpService, [FromBody] string token) =>
+{
+    // TODO: get user data from token.
+    var IsValid = await otpService.VerifyToken(token);
+    if (IsValid == false)
+        return Results.Unauthorized();
+
+    return Results.Ok("Authorized");
+})
+.WithName("GetUser")
+.WithOpenApi();
+
 app.Run();
 
 class RegisterUserRequest()
