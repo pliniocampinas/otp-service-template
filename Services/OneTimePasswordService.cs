@@ -7,19 +7,18 @@ namespace otp_service_template.Services;
 
 public class OneTimePasswordService: IOneTimePasswordService
 {
-
   public IUserService UserService { get; set; }
   public IEmailService EmailService { get; set; }
-  public IConfiguration Configuration { get; set; }
+  public AppSettings AppSettings { get; set; }
 
   public OneTimePasswordService(
     IUserService userService, 
     IEmailService emailService,
-    IConfiguration configuration)
+    AppSettings appSettings)
   {
     UserService = userService?? throw new ArgumentNullException(nameof(UserService));
     EmailService = emailService?? throw new ArgumentNullException(nameof(EmailService));
-    Configuration = configuration?? throw new ArgumentNullException(nameof(Configuration));
+    AppSettings = appSettings?? throw new ArgumentNullException(nameof(appSettings));
   }
 
   public async Task RequestValidation(string email)
@@ -74,9 +73,7 @@ public class OneTimePasswordService: IOneTimePasswordService
   private string GenerateToken(string email)
   {
     var tokenHandler = new JwtSecurityTokenHandler();
-    var myKeyValue = Configuration["AuthSecret"]?? throw new ArgumentNullException("AuthSecret cannot be null");
-
-    var key = Encoding.ASCII.GetBytes(myKeyValue);
+    var key = Encoding.ASCII.GetBytes(AppSettings.AuthSecret);
     var tokenDescriptor = new SecurityTokenDescriptor
     {
       Subject = new ClaimsIdentity(
@@ -93,12 +90,11 @@ public class OneTimePasswordService: IOneTimePasswordService
 
   private TokenValidationParameters GetValidationParameters()
   {
-    var myKeyValue = Configuration["AuthSecret"]?? throw new ArgumentNullException("AuthSecret cannot be null");
     return new TokenValidationParameters()
     {
       ValidateAudience = false,
       ValidateIssuer = false,
-      IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(myKeyValue)) // The same key as the one that generate the token
+      IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(AppSettings.AuthSecret))
     };
   }
 }
