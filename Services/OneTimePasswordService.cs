@@ -25,6 +25,10 @@ public class OneTimePasswordService: IOneTimePasswordService
   {
     var user = await UserService.GetByEmail(email);
 
+    // For safety the controller must not know the result of this request.
+    if (user.Status == UserStatus.None)
+      return;
+
     await EmailService.Send(new ValidationEmail()
     {
       Email = user.Email,

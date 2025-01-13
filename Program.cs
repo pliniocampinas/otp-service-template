@@ -12,6 +12,8 @@ builder.Services.AddSingleton<AppSettings>();
 builder.Services.AddScoped<IOneTimePasswordService, OneTimePasswordService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IDatabaseService, DatabaseService>();
+builder.Services.AddHostedService<StartupService>();
 
 var app = builder.Build();
 
@@ -31,9 +33,20 @@ app.MapGet("/health", () =>
 .WithName("Health")
 .WithOpenApi();
 
-app.MapPost("/register", async ([FromBody] RegisterUserRequest request) =>
+app.MapPost("/register", async ([FromBody] RegisterUserRequest request, [FromServices] IUserService userService) =>
 {
-    await Task.Delay(1000);
+    // TODO: Validate email string and check if user exists to return proper errors.
+
+    await userService.Save(new User()
+    {
+        Email = request.Email,
+        FullName = request.FullName,
+        Status = UserStatus.Created
+    });
+
+    // TODO: Should set UserStatus as Active only after email OTP.
+    // ...
+    //
     return Results.Created();
 })
 .WithName("register")
