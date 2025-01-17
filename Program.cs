@@ -33,9 +33,17 @@ app.MapGet("/health", () =>
 .WithName("Health")
 .WithOpenApi();
 
-app.MapPost("/register", async ([FromBody] RegisterUserRequest request, [FromServices] IUserService userService) =>
+app.MapPost("/register", async ([FromBody] RegisterUserRequest request, [FromServices] IUserService userService, [FromServices] IOneTimePasswordService otpService) =>
 {
-    // TODO: Validate email string and check if user exists to return proper errors.
+    if (string.IsNullOrEmpty(request?.Email))
+        return Results.BadRequest(ApiError.InvalidEmail.AsApiResponse());
+
+    var user = await userService.GetByEmail(request.Email);
+
+    if (user is not null)
+    {
+        return Results.NoContent();
+    }
 
     await userService.Save(new User()
     {
@@ -44,10 +52,9 @@ app.MapPost("/register", async ([FromBody] RegisterUserRequest request, [FromSer
         Status = UserStatus.Created
     });
 
-    // TODO: Should set UserStatus as Active only after email OTP.
-    // ...
-    //
-    return Results.Created();
+    await otpService.RequestValidation(request.Email);
+
+    return Results.NoContent();
 })
 .WithName("register")
 .WithOpenApi();
@@ -97,20 +104,3 @@ app.MapPost("/user", async ([FromServices] IOneTimePasswordService otpService, [
 .WithOpenApi();
 
 app.Run();
-
-class RegisterUserRequest()
-{
-    public string FullName { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-}
-
-class StartValidationRequest()
-{
-    public string Email { get; set; } = string.Empty;
-}
-
-class ConfirmValidationRequest()
-{
-    public string Email { get; set; } = string.Empty;
-    public string Password { get; set; } = string.Empty;
-}

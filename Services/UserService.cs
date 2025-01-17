@@ -10,11 +10,11 @@ public class UserService: IUserService
     AppSettings = appSettings?? throw new ArgumentNullException(nameof(appSettings));
   }
 
-  public async Task<User> GetByEmail(string email)
+  public async Task<User?> GetByEmail(string email)
   {
     await Task.Delay(100);
 
-    var user = new User();
+    User? user = null;
     var sql = "SELECT id, email, full_name, status FROM otp_users WHERE email = @email";
 
     using (var connection = new SqliteConnection(AppSettings.SqLiteConnectionString))
@@ -28,10 +28,12 @@ public class UserService: IUserService
       {
         if (reader.Read())
         {
-          MapValues(user, reader);
+          user = MapValues(reader);
         }
       }
     }
+
+    Console.WriteLine("Found user " + user?.Email);
 
     return user;
   }
@@ -56,15 +58,19 @@ public class UserService: IUserService
       command.ExecuteNonQuery();
     }
 
+    Console.WriteLine("Created user " + user.Email);
+
     return user;
   }
 
-  private void MapValues(User model, SqliteDataReader? reader)
+  private User? MapValues(SqliteDataReader? reader)
   {
     if(reader == null)
     {
-      return;
+      return null;
     }
+
+    var model = new User();
 
     var parsedIdSucessfully =  Guid.TryParse(reader.GetString(0), out Guid id);
     if (parsedIdSucessfully)
@@ -74,5 +80,7 @@ public class UserService: IUserService
     var parsedStatusSucessfully =  Enum.TryParse(reader.GetString(3), out UserStatus userStatus);
     if (parsedStatusSucessfully)
       model.Status = userStatus;
+
+    return model;
   }
 }
