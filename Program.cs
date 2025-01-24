@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using otp_service_template;
 using otp_service_template.Services;
+using static System.Net.Mime.MediaTypeNames;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +9,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddHttpLogging(o => 
+{
+    // TODO: Configure options to remove excess log info.
+});
 builder.Services.AddSingleton<AppSettings>();
 builder.Services.AddScoped<IOneTimePasswordService, OneTimePasswordService>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -24,6 +29,16 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseHttpLogging();
+app.UseExceptionHandler(exceptionHandlerApp =>
+{
+    exceptionHandlerApp.Run(async context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        context.Response.ContentType = Text.Plain;
+        await context.Response.WriteAsync("An exception was thrown.");
+    });
+});
 // app.UseHttpsRedirection();
 
 app.MapGet("/health", () =>
