@@ -33,7 +33,10 @@ app.MapGet("/health", () =>
 .WithName("Health")
 .WithOpenApi();
 
-app.MapPost("/register", async ([FromBody] RegisterUserRequest request, [FromServices] IUserService userService, [FromServices] IOneTimePasswordService otpService) =>
+app.MapPost("/register", async (
+    [FromBody] RegisterUserRequest request, 
+    [FromServices] IUserService userService, 
+    [FromServices] IOneTimePasswordService otpService) =>
 {
     if (string.IsNullOrEmpty(request?.Email))
         return Results.BadRequest(ApiError.InvalidEmail.AsApiResponse());
@@ -56,10 +59,34 @@ app.MapPost("/register", async ([FromBody] RegisterUserRequest request, [FromSer
 
     return Results.NoContent();
 })
-.WithName("register")
+.WithName("RegisterUser")
 .WithOpenApi();
 
-app.MapPost("/validation-start", async ([FromServices] IOneTimePasswordService otpService, [FromBody] StartValidationRequest request) =>
+app.MapPost("/register-confirmation", async (
+    [FromBody] ConfirmRegisterRequest request, 
+    [FromServices] IUserService userService, 
+    [FromServices] IOneTimePasswordService otpService) =>
+{
+    if (string.IsNullOrEmpty(request?.Email))
+        return Results.BadRequest(ApiError.InvalidEmail.AsApiResponse());
+
+    var user = await userService.GetByEmail(request.Email);
+
+    if (user is not null)
+    {
+        return Results.BadRequest();
+    }
+
+    await otpService.ConfirmValidation(request.Email, request.Password);
+
+    return Results.Ok();
+})
+.WithName("ConfirmRegister")
+.WithOpenApi();
+
+app.MapPost("/validation-start", async (
+    [FromServices] IOneTimePasswordService otpService, 
+    [FromBody] StartValidationRequest request) =>
 {
     if(string.IsNullOrEmpty(request.Email))
         return Results.BadRequest("Email required");
@@ -71,7 +98,9 @@ app.MapPost("/validation-start", async ([FromServices] IOneTimePasswordService o
 .WithName("StartOtpRequest")
 .WithOpenApi();
 
-app.MapPost("/validation-confirmation", async ([FromServices] IOneTimePasswordService otpService, [FromBody] ConfirmValidationRequest request) =>
+app.MapPost("/validation-confirmation", async (
+    [FromServices] IOneTimePasswordService otpService, 
+    [FromBody] ConfirmValidationRequest request) =>
 {
     if(string.IsNullOrEmpty(request.Email))
         return Results.BadRequest("Email required");
@@ -91,7 +120,9 @@ app.MapPost("/validation-confirmation", async ([FromServices] IOneTimePasswordSe
 .WithName("ConfirmOtpRequest")
 .WithOpenApi();
 
-app.MapPost("/user", async ([FromServices] IOneTimePasswordService otpService, [FromBody] string token) =>
+app.MapPost("/user", async (
+    [FromServices] IOneTimePasswordService otpService, 
+    [FromBody] string token) =>
 {
     // TODO: get user data from token.
     var IsValid = await otpService.VerifyToken(token);

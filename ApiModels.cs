@@ -7,6 +7,12 @@ public class RegisterUserRequest()
   public string Email { get; set; } = string.Empty;
 }
 
+public class ConfirmRegisterRequest()
+{
+  public string Email { get; set; } = string.Empty;
+  public string Password { get; set; } = string.Empty;
+}
+
 public class StartValidationRequest()
 {
   public string Email { get; set; } = string.Empty;
