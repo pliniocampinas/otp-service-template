@@ -5,6 +5,6 @@ An open One Time Password api solution template
 - [x] Implement get user by email with sqlite.
 - [x] Implement confirm user registration endpoint.
 - [x] Add log middleware and error middleware.
-- [ ] Implement logger, log middleware and error middleware.
+- [x] Implement logger, log middleware and error middleware.
 - [ ] Save email-password with expiration time on a short lived storage.
 - [ ] ...

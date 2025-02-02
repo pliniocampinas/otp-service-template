@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.AspNetCore.Mvc;
 using otp_service_template;
 using otp_service_template.Services;
@@ -9,9 +10,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddHttpLogging(o => 
-{
-    // TODO: Configure options to remove excess log info.
+builder.Services.AddHttpLogging(o => {
+    o.LoggingFields = HttpLoggingFields.All;
+    o.CombineLogs = true;
 });
 builder.Services.AddSingleton<AppSettings>();
 builder.Services.AddScoped<IOneTimePasswordService, OneTimePasswordService>();
@@ -19,6 +20,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IDatabaseService, DatabaseService>();
 builder.Services.AddHostedService<StartupService>();
+builder.Services.AddExceptionHandler<ApiErrorHandler>();
 
 var app = builder.Build();
 
