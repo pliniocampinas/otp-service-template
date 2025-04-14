@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.AspNetCore.Mvc;
 using otp_service_template;
 using otp_service_template.Services;
+using otp_service_template.Services.Cache;
 using static System.Net.Mime.MediaTypeNames;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,11 +16,13 @@ builder.Services.AddHttpLogging(o => {
     o.CombineLogs = true;
 });
 builder.Services.AddSingleton<AppSettings>();
+builder.Services.AddSingleton<MyMemoryCache>();
 builder.Services.AddScoped<IOneTimePasswordService, OneTimePasswordService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IDatabaseService, DatabaseService>();
 builder.Services.AddHostedService<StartupService>();
+builder.Services.AddHostedService<TimedHostedService>();
 builder.Services.AddExceptionHandler<ApiErrorHandler>();
 
 var app = builder.Build();
