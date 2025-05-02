@@ -91,12 +91,17 @@ app.MapPost("/register-confirmation", async (
 
     var user = await userService.GetByEmail(request.Email);
 
-    if (user is not null)
+    if (user is null)
     {
         return Results.BadRequest();
     }
 
-    await otpService.ConfirmValidation(request.Email, request.Password);
+    var result = await otpService.ConfirmValidation(request.Email, request.Password);
+
+    if (result.Status != ConfirmationStatus.Authorized)
+        return Results.Unauthorized();
+
+    await userService.Activate(user.Id.Value);
 
     return Results.Ok();
 })

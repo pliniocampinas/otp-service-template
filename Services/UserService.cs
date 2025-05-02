@@ -63,6 +63,25 @@ public class UserService: IUserService
     return user;
   }
 
+  public async Task Activate(Guid userId)
+  {
+    await Task.Delay(100);
+
+    var sql = "UPDATE otp_users SET status = @status "
+      + " WHERE Id = @id ";
+
+    using (var connection = new SqliteConnection(AppSettings.SqLiteConnectionString))
+    {
+      connection.Open();
+      var command = connection.CreateCommand();
+      command.CommandText = sql;
+      command.Parameters.AddWithValue("@id", Guid.NewGuid());
+      command.Parameters.AddWithValue("@status", UserStatus.Active);
+
+      command.ExecuteNonQuery();
+    }
+  }
+
   private User? MapValues(SqliteDataReader? reader)
   {
     if(reader == null)

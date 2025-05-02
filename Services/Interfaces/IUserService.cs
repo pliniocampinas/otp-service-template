@@ -4,4 +4,5 @@ public interface IUserService
 {
   Task<User?> GetByEmail(string email);
   Task<User> Save(User user);
+  Task Activate(Guid email);
 }
