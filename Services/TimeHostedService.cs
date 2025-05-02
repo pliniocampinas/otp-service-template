@@ -1,15 +1,13 @@
 
-using otp_service_template.Services.Cache;
-
 namespace otp_service_template.Services;
 
 public class TimedHostedService : IHostedService, IDisposable
 {
   private readonly ILogger<TimedHostedService> _logger;
   private Timer? _timer = null;
-  private MyMemoryCache? _memoryCache = null;
+  private CacheService? _memoryCache = null;
 
-  public TimedHostedService(ILogger<TimedHostedService> logger, MyMemoryCache memoryCache)
+  public TimedHostedService(ILogger<TimedHostedService> logger, CacheService memoryCache)
   {
     _logger = logger;
     _memoryCache = memoryCache;
@@ -29,7 +27,7 @@ public class TimedHostedService : IHostedService, IDisposable
   {
     if(_memoryCache is not null)
     {
-      _memoryCache.Cache.Compact(0.5);
+      _memoryCache.Compact();
     }
   }
 

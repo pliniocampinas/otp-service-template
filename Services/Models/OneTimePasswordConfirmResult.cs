@@ -3,6 +3,7 @@ namespace otp_service_template.Services;
 public enum ConfirmationStatus
 {
   None,
+  Denied,
   Authorized
 }
 

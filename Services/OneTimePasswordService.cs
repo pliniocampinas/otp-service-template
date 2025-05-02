@@ -10,15 +10,18 @@ public class OneTimePasswordService: IOneTimePasswordService
   public IUserService UserService { get; set; }
   public IEmailService EmailService { get; set; }
   public AppSettings AppSettings { get; set; }
+  public CacheService CacheService { get; set; }
 
   public OneTimePasswordService(
     IUserService userService, 
     IEmailService emailService,
-    AppSettings appSettings)
+    AppSettings appSettings,
+    CacheService cacheService)
   {
     UserService = userService?? throw new ArgumentNullException(nameof(UserService));
     EmailService = emailService?? throw new ArgumentNullException(nameof(EmailService));
     AppSettings = appSettings?? throw new ArgumentNullException(nameof(appSettings));
+    CacheService = cacheService?? throw new ArgumentNullException(nameof(cacheService));
   }
 
   public async Task RequestValidation(string email)
@@ -28,12 +31,16 @@ public class OneTimePasswordService: IOneTimePasswordService
     if (user is null || user.Status == UserStatus.None)
       return;
 
+    var password = GeneratePassword();
+
     await EmailService.Send(new ValidationEmail()
     {
       Email = user.Email,
       FullName = user.FullName,
-      Password = GeneratePassword()
+      Password = password
     });
+
+    CacheService.Save(user.Email, password);
 
     await Task.Delay(100);
   }
@@ -41,6 +48,14 @@ public class OneTimePasswordService: IOneTimePasswordService
   public async Task<OneTimePasswordConfirmResult> ConfirmValidation(string email, string password)
   {
     await Task.Delay(100);
+
+    var cachedPassword = CacheService.Get(email);
+
+    if (string.IsNullOrWhiteSpace(cachedPassword) || password.Trim() != cachedPassword)
+      return new OneTimePasswordConfirmResult()
+      {
+        Status = ConfirmationStatus.Denied,
+      };
 
     return new OneTimePasswordConfirmResult()
     {
