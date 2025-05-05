@@ -23,6 +23,9 @@ builder.Services.AddScoped<IDatabaseService, DatabaseService>();
 builder.Services.AddHostedService<StartupService>();
 builder.Services.AddHostedService<TimedHostedService>();
 builder.Services.AddExceptionHandler<ApiErrorHandler>();
+builder.Services.AddRazorPages();
+builder.Services.AddControllersWithViews();
+
 
 var app = builder.Build();
 
@@ -45,103 +48,16 @@ app.UseExceptionHandler(exceptionHandlerApp =>
 });
 // app.UseHttpsRedirection();
 
+app.UseStaticFiles();
+app.UseRouting();
+app.MapRazorPages();
+app.MapDefaultControllerRoute();
+
 app.MapGet("/health", () =>
 {
     return "healthy";
 })
 .WithName("Health")
-.WithOpenApi();
-
-app.MapPost("/register", async (
-    [FromBody] RegisterUserRequest request, 
-    [FromServices] IUserService userService, 
-    [FromServices] IOneTimePasswordService otpService) =>
-{
-    if (string.IsNullOrEmpty(request?.Email))
-        return Results.BadRequest(ApiError.InvalidEmail.AsApiResponse());
-
-    var user = await userService.GetByEmail(request.Email);
-
-    if (user is not null)
-    {
-        return Results.NoContent();
-    }
-
-    await userService.Save(new User()
-    {
-        Email = request.Email,
-        FullName = request.FullName,
-        Status = UserStatus.Created
-    });
-
-    await otpService.RequestValidation(request.Email);
-
-    return Results.NoContent();
-})
-.WithName("RegisterUser")
-.WithOpenApi();
-
-app.MapPost("/register-confirmation", async (
-    [FromBody] ConfirmRegisterRequest request, 
-    [FromServices] IUserService userService, 
-    [FromServices] IOneTimePasswordService otpService) =>
-{
-    if (string.IsNullOrEmpty(request?.Email))
-        return Results.BadRequest(ApiError.InvalidEmail.AsApiResponse());
-
-    var user = await userService.GetByEmail(request.Email);
-
-    if (user is null)
-    {
-        return Results.BadRequest();
-    }
-
-    var result = await otpService.ConfirmValidation(request.Email, request.Password);
-
-    if (result.Status != ConfirmationStatus.Authorized)
-        return Results.Unauthorized();
-
-    await userService.Activate(user.Id.Value);
-
-    return Results.Ok();
-})
-.WithName("ConfirmRegister")
-.WithOpenApi();
-
-app.MapPost("/validation-start", async (
-    [FromServices] IOneTimePasswordService otpService, 
-    [FromBody] StartValidationRequest request) =>
-{
-    if(string.IsNullOrEmpty(request.Email))
-        return Results.BadRequest("Email required");
-
-    await otpService.RequestValidation(request.Email);
-
-    return Results.Ok();
-})
-.WithName("StartOtpRequest")
-.WithOpenApi();
-
-app.MapPost("/validation-confirmation", async (
-    [FromServices] IOneTimePasswordService otpService, 
-    [FromBody] ConfirmValidationRequest request) =>
-{
-    if(string.IsNullOrEmpty(request.Email))
-        return Results.BadRequest("Email required");
-
-    if(string.IsNullOrEmpty(request.Password))
-        return Results.BadRequest("Password required");
-
-    var result = await otpService.ConfirmValidation(request.Email, request.Password);
-
-    if (result.Status != ConfirmationStatus.Authorized)
-        return Results.Unauthorized();
-
-    return Results.Ok(new {
-        result.Token
-    });
-})
-.WithName("ConfirmOtpRequest")
 .WithOpenApi();
 
 app.MapPost("/user", async (

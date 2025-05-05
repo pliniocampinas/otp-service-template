@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>"OTP Verification"</title>
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+    <div id="step-1" class="otp-container">
+        <h2>Enter Email</h2>
+        <form id="step-1-form">
+            <input type="email" name="email" placeholder="Email" class="email-input" required />
+            <br />
+            <button type="submit" class="submit-button">Send email</button>
+        </form>
+        <div class="message"></div>
+    </div>
+
+    <div id="step-2" class="otp-container" style="display:none;">
+        <h2>Enter OTP</h2>
+        <form id="step-2-form">
+            <h5>Email sent to: <span class="email-span"></span></h5>
+            <input type="text" name="otp" placeholder="password" class="otp-input" required />
+            <br />
+            <button type="submit" class="submit-button">Send otp</button>
+        </form>
+        <div class="message"></div>
+    </div>
+
+    <script>
+        var token = '';
+        
+        document.getElementById('step-1-form').addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            const email = document.querySelector('#step-1-form .email-input').value;
+
+            const response = await fetch('/otp/start', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email })
+            });
+
+            const message = await response.text();
+
+            document.querySelector('#step-1 .message').innerText = message;
+
+            document.querySelector('#step-1-form .submit-button').disabled = true;
+
+            setTimeout(() => {
+                document.querySelector('#step-2-form .email-span').innerText = email;
+                document.querySelector('#step-2').style.display = 'block';
+                document.querySelector('#step-1').remove();
+            }, 800);
+        });
+
+        document.getElementById('step-2-form').addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            const email = document.querySelector('#step-2-form .email-span').innerText;
+            const password = document.querySelector('#step-2-form .otp-input').value;
+
+            const response = await fetch('/otp/confirm', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, password })
+            });
+
+            if (response.status != 200)
+            {
+                const message = await response.text();
+                document.querySelector('#step-2 .message').innerText = message;
+                return;
+            }
+            
+            const result = await response.json();
+            token = result.token??""
+            document.querySelector('#step-2 .message').innerText = "Autorizado";
+        });
+    </script>
+</body>
+</html>
