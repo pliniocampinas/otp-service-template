@@ -18,7 +18,7 @@ public class TimedHostedService : IHostedService, IDisposable
     _logger.LogInformation("Timed Hosted Service running.");
 
     _timer = new Timer(DoWork, null, TimeSpan.Zero,
-      TimeSpan.FromSeconds(5));
+      TimeSpan.FromSeconds(120));
 
     return Task.CompletedTask;
   }
@@ -27,6 +27,7 @@ public class TimedHostedService : IHostedService, IDisposable
   {
     if(_memoryCache is not null)
     {
+      _logger.LogInformation("Timed Hosted compact cache.");
       _memoryCache.Compact();
     }
   }

@@ -26,21 +26,15 @@ public class OneTimePasswordService: IOneTimePasswordService
 
   public async Task RequestValidation(string email)
   {
-    var user = await UserService.GetByEmail(email);
-
-    if (user is null || user.Status == UserStatus.None)
-      return;
-
     var password = GeneratePassword();
 
     await EmailService.Send(new ValidationEmail()
     {
-      Email = user.Email,
-      FullName = user.FullName,
+      Email = email,
       Password = password
     });
 
-    CacheService.Save(user.Email, password);
+    CacheService.Save(email, password);
 
     await Task.Delay(100);
   }

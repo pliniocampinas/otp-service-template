@@ -7,7 +7,6 @@ using static System.Net.Mime.MediaTypeNames;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHttpLogging(o => {
@@ -52,26 +51,6 @@ app.UseStaticFiles();
 app.UseRouting();
 app.MapRazorPages();
 app.MapDefaultControllerRoute();
-
-app.MapGet("/health", () =>
-{
-    return "healthy";
-})
-.WithName("Health")
-.WithOpenApi();
-
-app.MapPost("/user", async (
-    [FromServices] IOneTimePasswordService otpService, 
-    [FromBody] string token) =>
-{
-    // TODO: get user data from token.
-    var IsValid = await otpService.VerifyToken(token);
-    if (IsValid == false)
-        return Results.Unauthorized();
-
-    return Results.Ok("Authorized");
-})
-.WithName("GetUser")
-.WithOpenApi();
+app.MapGet("/health", () => "healthy");
 
 app.Run();
