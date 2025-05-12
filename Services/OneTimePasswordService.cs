@@ -11,17 +11,20 @@ public class OneTimePasswordService: IOneTimePasswordService
   public IEmailService EmailService { get; set; }
   public AppSettings AppSettings { get; set; }
   public CacheService CacheService { get; set; }
+  public ITokenService TokenService { get; set; }
 
   public OneTimePasswordService(
     IUserService userService, 
     IEmailService emailService,
     AppSettings appSettings,
+    ITokenService tokenService,
     CacheService cacheService)
   {
     UserService = userService?? throw new ArgumentNullException(nameof(UserService));
     EmailService = emailService?? throw new ArgumentNullException(nameof(EmailService));
     AppSettings = appSettings?? throw new ArgumentNullException(nameof(appSettings));
     CacheService = cacheService?? throw new ArgumentNullException(nameof(cacheService));
+    TokenService = tokenService?? throw new ArgumentNullException(nameof(tokenService));
   }
 
   public async Task RequestValidation(string email)
@@ -54,23 +57,8 @@ public class OneTimePasswordService: IOneTimePasswordService
     return new OneTimePasswordConfirmResult()
     {
       Status = ConfirmationStatus.Authorized,
-      Token = GenerateToken(email)
+      Token = TokenService.GenerateToken(email)
     };
-  }
-
-  public async Task<bool> VerifyToken(string token)
-  {
-    await Task.Delay(100);
-    var tokenHandler = new JwtSecurityTokenHandler();
-    var result = await tokenHandler.ValidateTokenAsync(token, GetValidationParameters());
-
-    if(result.IsValid == false)
-    {
-      Console.WriteLine("Invalid token");
-      return false;
-    }
-
-    return result.IsValid;
   }
 
   private string GeneratePassword()
@@ -80,33 +68,5 @@ public class OneTimePasswordService: IOneTimePasswordService
       .ToString();
 
     return password.PadLeft(4, '0');
-  }
-
-  private string GenerateToken(string email)
-  {
-    var tokenHandler = new JwtSecurityTokenHandler();
-    var key = Encoding.ASCII.GetBytes(AppSettings.AuthSecret);
-    var tokenDescriptor = new SecurityTokenDescriptor
-    {
-      Subject = new ClaimsIdentity(
-      [
-        new Claim(ClaimTypes.Email, email),
-        new Claim(ClaimTypes.Role, "User")
-      ]),
-      Expires = DateTime.UtcNow.AddMinutes(10),
-      SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-    };
-    var token = tokenHandler.CreateToken(tokenDescriptor);
-    return tokenHandler.WriteToken(token);
-  }
-
-  private TokenValidationParameters GetValidationParameters()
-  {
-    return new TokenValidationParameters()
-    {
-      ValidateAudience = false,
-      ValidateIssuer = false,
-      IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(AppSettings.AuthSecret))
-    };
   }
 }
