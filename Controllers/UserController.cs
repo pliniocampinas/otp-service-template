@@ -1,10 +1,19 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace otp_service_template.Services;
 
 [ApiController]
+[Route("[controller]")]
 public class UserController : ControllerBase
 {
+  [HttpPost("test")]
+  [Authorize]
+  public async Task<IActionResult> Start()
+  {
+    return Ok("Ok");
+  }
+
   [HttpPost("register")]
   public async Task<IActionResult> Start(
     [FromBody] RegisterUserRequest request,
