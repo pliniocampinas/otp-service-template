@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,11 +8,18 @@ namespace otp_service_template.Services;
 [Route("[controller]")]
 public class UserController : ControllerBase
 {
-  [HttpPost("test")]
+  [HttpGet("")]
   [Authorize]
-  public async Task<IActionResult> Start()
+  public async Task<IActionResult> Get(
+    [FromServices] IUserService userService
+  )
   {
-    return Ok("Ok");
+    var email = User.Claims.First(c => c.Type == ClaimTypes.Email).Value;
+    Console.WriteLine("email" + email);
+
+    var user = await userService.GetByEmail(email);
+
+    return Ok(user);
   }
 
   [HttpPost("register")]

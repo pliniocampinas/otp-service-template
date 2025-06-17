@@ -67,6 +67,6 @@ public class OneTimePasswordService: IOneTimePasswordService
       .Next(0, 10_000)
       .ToString();
 
-    return password.PadLeft(4, '0');
+    return password.PadLeft(6, '0');
   }
 }
