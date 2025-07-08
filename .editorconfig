@@ -1,0 +1,33 @@
+# Raiz do EditorConfig - Garante que as configurações não afetem pastas pai.
+root = true
+
+[*] # Configurações globais para todos os arquivos
+charset = utf-8
+end_of_line = lf # Usa Line Feed para quebra de linha (padrão em sistemas Unix/Linux)
+insert_final_newline = true # Garante uma linha em branco no final do arquivo
+trim_trailing_whitespace = true # Remove espaços em branco no final das linhas
+
+[*.cs] # Configurações específicas para arquivos C#
+indent_style = space # Usa espaços para indentação
+indent_size = 4 # 4 espaços para cada nível de indentação
+tab_width = 4 # Largura da tabulação (se for usado tab, mas estamos usando espaços)
+
+[*.{js,jsx,ts,tsx}] # Configurações para JavaScript/TypeScript (React, etc.)
+indent_style = space
+indent_size = 2 # É comum usar 2 espaços para JavaScript/TypeScript
+tab_width = 2
+
+[*.{json,jsonc}] # Configurações para arquivos JSON
+indent_style = space
+indent_size = 2
+tab_width = 2
+
+[*.{html,htm}] # Configurações para arquivos HTML
+indent_style = space
+indent_size = 2
+tab_width = 2
+
+[*.{css,scss,less}] # Configurações para arquivos CSS/Sass/Less
+indent_style = space
+indent_size = 2
+tab_width = 2

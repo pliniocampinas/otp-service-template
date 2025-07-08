@@ -8,73 +8,50 @@ namespace otp_service_template.Services;
 [Route("[controller]")]
 public class UserController : ControllerBase
 {
-  [HttpGet("")]
-  [Authorize]
-  public async Task<IActionResult> Get(
-    [FromServices] IUserService userService
-  )
-  {
-    var email = User.Claims.First(c => c.Type == ClaimTypes.Email).Value;
-    Console.WriteLine("email" + email);
-
-    var user = await userService.GetByEmail(email);
-
-    return Ok(user);
-  }
-
-  [HttpPost("register")]
-  public async Task<IActionResult> Start(
-    [FromBody] RegisterUserRequest request,
-    [FromServices] IUserService userService,
-    [FromServices] IOneTimePasswordService otpService
-  )
-  {
-    if (string.IsNullOrEmpty(request?.Email))
-      return BadRequest(ApiError.InvalidEmail.AsApiResponse());
-
-    var user = await userService.GetByEmail(request.Email);
-
-    if (user is not null)
+    [HttpGet("")]
+    [Authorize]
+    public async Task<IActionResult> Get(
+      [FromServices] IUserService userService
+    )
     {
-      return NoContent();
+        var email = User.Claims.First(c => c.Type == ClaimTypes.Email).Value;
+        Console.WriteLine("email" + email);
+
+        var user = await userService.GetByEmail(email);
+
+        if (user is null)
+        {
+            return NotFound(ApiError.UserNotFound.AsApiResponse());
+        }
+
+        return Ok(user);
     }
 
-    await userService.Save(new User()
+    [HttpPost("submit")]
+    [Authorize]
+    public async Task<IActionResult> Submit(
+      [FromBody] SubmitUserRequest request,
+      [FromServices] IUserService userService,
+      [FromServices] IOneTimePasswordService otpService
+    )
     {
-      Email = request.Email,
-      FullName = request.FullName,
-      Status = UserStatus.Created
-    });
+        var email = User.Claims.First(c => c.Type == ClaimTypes.Email).Value;
+        if (string.IsNullOrEmpty(email))
+            return BadRequest(ApiError.InvalidEmail.AsApiResponse());
 
-    await otpService.RequestValidation(request.Email);
+        var user = await userService.GetByEmail(email);
 
-    return NoContent();
-  }
+        if (user is not null)
+        {
+            return NoContent();
+        }
 
-  [HttpPost("confirm-register")]
-  public async Task<IActionResult> Confirm(
-    [FromBody] ConfirmRegisterRequest request,
-    [FromServices] IUserService userService,
-    [FromServices] IOneTimePasswordService otpService
-  )
-  {
-    if (string.IsNullOrEmpty(request?.Email))
-      return BadRequest(ApiError.InvalidEmail.AsApiResponse());
+        await userService.Save(new User()
+        {
+            Email = email,
+            FullName = request.FullName
+        });
 
-    var user = await userService.GetByEmail(request.Email);
-
-    if (user is null)
-    {
-      return BadRequest();
+        return NoContent();
     }
-
-    var result = await otpService.ConfirmValidation(request.Email, request.Password);
-
-    if (result.Status != ConfirmationStatus.Authorized)
-      return Unauthorized();
-
-    await userService.Activate(user.Id.Value);
-
-    return Ok();
-  }
 }

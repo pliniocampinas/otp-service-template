@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Referências aos elementos do DOM
     const step1 = document.getElementById('step1');
     const step2 = document.getElementById('step2');
     const step3 = document.getElementById('step3');
@@ -32,8 +31,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let jwtToken = '';
 
     // --- Funções Auxiliares ---
-
-    // Mostra uma etapa e esconde as outras
     function showStep(stepToShow) {
         [step1, step2, step3].forEach(step => {
             step.classList.remove('active');
@@ -41,7 +38,6 @@ document.addEventListener('DOMContentLoaded', () => {
         stepToShow.classList.add('active');
     }
 
-    // Limpa mensagens de erro
     function clearErrors() {
         emailError.textContent = '';
         otpError.textContent = '';
@@ -73,10 +69,9 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             sendOtpButton.textContent = 'Enviando...';
-            await new Promise(resolve => setTimeout(resolve, 2000)); // Simula delay da API
 
-            displayEmail.textContent = userEmail; // Exibe o email na próxima etapa
-            otpInput.value = ''; // Limpa o campo OTP
+            displayEmail.textContent = userEmail;
+            otpInput.value = '';
             showStep(step2);
 
         } catch (error) {
@@ -103,9 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Simulação de verificação de OTP e obtenção de JWT
         try {
-            // Em um ambiente real, você faria uma requisição POST para sua API de backend
             const response = await fetch('/otp/confirm', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -122,13 +115,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             verifyOtpButton.disabled = true;
             verifyOtpButton.textContent = 'Verificando...';
-            await new Promise(resolve => setTimeout(resolve, 2000)); // Simula delay da API
 
             // Exemplo de JWT (apenas para simulação, não use em produção)
             console.log('Token JWT recebido:', jwtToken);
 
             showStep(step3);
-            loadUserData(); // Carrega os dados após obter o token
+            loadUserData();
 
         } catch (error) {
             otpError.textContent = `Erro: ${error.message || 'OTP inválido ou expirado.'}`;
